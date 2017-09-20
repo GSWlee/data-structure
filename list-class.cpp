@@ -47,9 +47,11 @@ public:
 	}
 	void add(int target)
 	{
-		header = new ListNode;
-		header->element = target;
-		header->next = nullptr;
+		ListNode* temp;
+		temp = new ListNode;
+		temp->element = target;
+		temp->next = header;
+		header=temp;
 	}
 	void add(int target, int pos)
 	{
@@ -102,4 +104,3 @@ public:
 		}
 	}
 };
- 
