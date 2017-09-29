@@ -51,3 +51,27 @@ T* hillsort(T* a, int length)						//hill排序
 	}
 	return a;
 }
+template <class T>								   //归并排序，由于c++和java差异的问题造成的内存开销巨大问题正在解决
+void merge(T* a, int s, int t, int mid,int lo,int hi)
+{
+	T* aue = new int[hi - lo+1];
+	int i = s, j = mid + 1;
+	for (int k = s; k<=t; k++)
+		aue[k] = a[k];
+	for (int k = s; k<=t; k++)
+	{
+		if (i>mid)   					a[k] = aue[j++];
+		else if (j > t)   				a[k] = aue[i++];
+		else if (ifless(aue[i], aue[j]))  a[k] = aue[i++];
+		else							a[k] = aue[j++];
+	}
+}
+template <class T>
+void mergesort(T* a, int s, int t,int lo,int hi)
+{
+	if (t <= s)           return;
+	int mid = (s + t) / 2;
+	mergesort(a, s, mid,lo,hi);
+	mergesort(a, mid + 1, t,lo,hi);
+	merge(a, s, t, mid, lo,hi);
+}
