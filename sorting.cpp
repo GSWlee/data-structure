@@ -71,11 +71,12 @@ void merge(T* a, int s, int t, int mid,int length)
 template <class T>								 //自顶而下的归并
 void mergesort(T* a, int s, int t,int length)
 {
-	if ((t-s)<15)
-	{
-		selectsort(a,t-s+1);
+	if(t<=s) return ;
+	/*if ((t-s)<15)								//改进避免因为特别小的数组调用递归
+	{											//增加复杂度，15只是随便设的，具体
+		selectsort(a,t-s+1);					//具体数值跟系统有关一般5到15都可以
 		return ;
-	}
+	}*/
 	int mid = (s + t) / 2;
 	mergesort(a, s, mid,length);
 	mergesort(a, mid + 1, t,length);
@@ -103,4 +104,42 @@ void mergesort(T*a, int length)
 	for (int size = 1; size<length; size += size)
 		for (int lo = 0; lo<length - size; lo += size+size)
 			merge(a, aue, lo, lo + size - 1, findmin(lo + size + size - 1, length- 1));
+}
+template <class T>								//快速排序（普通版）
+int partiton(T*a,int lo,int hi)
+{
+	int i=lo,j=hi+1;
+	T v=a[lo];
+	while(true)
+	{
+		while(ifless(a[++i],v)) if(i==(hi)) break;
+		while(ifless(v,a[--j])) if(j==lo) break;
+		if(i>=j)break;
+		Swap(a[i],a[j]);
+	}
+	Swap(a[lo],a[j]);
+	return j;
+}
+template <class T>
+void quicksort(T* a,int lo,int hi)
+{
+	if(lo>=hi) return ;
+	int j=partiton(a,lo,hi);
+	quicksort(a,lo,j-1);
+	quicksort(a,j+1,hi);
+}
+template <class T>								//Dijkstra的三切分快排：解决重复元素
+void quicksort_3way(T*a,int lo,int hi)			//过多的数据排序问题。不过在重复元素
+{												//比较少时，使用了比普通快排更多的
+	if(lo>=hi)		return;						//交换并不理想
+	int i=lo,j=lo+1,k=hi;
+	T v=a[lo];
+	while(j<=k)
+	{
+		if(a[j]<v)        Swap(a[i++],a[j++]);
+		else if(a[j]>v)   Swap(a[j],a[k--]);
+		else 			  j++;
+	}
+	quicksort_3way(a,lo,i-1);
+	quicksort_3way(a,j+1,hi);
 }
