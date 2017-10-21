@@ -48,9 +48,13 @@ class RBTree {
 		RBTreeNode<T>* NextNode(RBTreeNode<T>* root);
 		RBTreeNode<T>* LeftRotate(RBTreeNode<T>* node);
 		RBTreeNode<T>* RightRotate(RBTreeNode<T>* node);
+		RBTreeNode<T>* Balance(RBTreeNode<T>* node);
+		RBTreeNode<T>* MoveRedLeft(RBTreeNode<T>* node);
+		RBTreeNode<T>* MoveRedRight(RBTreeNode<T>* node);
+		RBTreeNode<T>* DeleteMin(RBTreeNode<T>* root);
 		RBTreeNode<T>* Insert(T key,RBTreeNode<T>* root,RBTreeNode<T>* parent);
-		void Insert(T key);//@bug
-		void Remove(RBTreeNode<T>* node);//@bug
+		RBTreeNode<T>* Remove(RBTreeNode<T>* root, T key);
+		void Insert(T key);
 		void Remove(T key);
 	private:
 		RBTreeNode<T>* root_;
@@ -77,6 +81,7 @@ void RBTreeNode<T>::SetParent(RBTreeNode<T>* p) {parent_=p;}
 template <class T>
 RBTree<T>::RBTree() { root_=nullptr;}
 
+
 /**
 *	@brief 解决两子结点都为红结点的情况
 */
@@ -88,6 +93,20 @@ void RBTree<T>::FixColor(RBTreeNode<T>* node) {
 	node->color_=RED;
 }
 
+
+/**
+*	@brief 恢复红黑树平衡
+*/
+
+template <class T>
+RBTreeNode<T>* RBTree<T>::Balance(RBTreeNode<T>* node) {
+	if (IsRed(node->right_)) node=LeftRotate(node);
+	if (IsRed(node->right_)&&!IsRed(node->left_)) node=LeftRotate(node);	    //存在红节点为右节点时
+	if (IsRed(node->left_)&&IsRed(node->left_->left_)) node=RightRotate(node);  //存在两个红节点相连时
+	if (IsRed(node->right_)&&IsRed(node->right_)) FixColor(node);				//存在两个子节点都为红节点时
+
+	return node;
+}
 /**
 *	@brief 利用红黑树完成对于key的查找
 *	@return 指向key值所在的结点的指针，如果没有找到返回值为nullptr
@@ -121,6 +140,7 @@ RBTreeNode<T>* RBTree<T>::MinNode(RBTreeNode<T>* root=root_) {
 	return temp;
 }
 
+
 /**
 *	@brief 查找node的前驱元素，即比node大的最小元
 *	@return 指向node前驱元素的结点的指针
@@ -131,6 +151,7 @@ RBTreeNode<T>* RBTree<T>::PreNode(RBTreeNode<T>* node) {
 	return MinNode(node->parent_);
 }
 
+
 /**
 *	@brief 查找node的后继元素，即比node小的最大元
 *	@return 指向node后继元素的结点的指针
@@ -140,6 +161,7 @@ template <class T>
 RBTreeNode<T>* RBTree<T>::NextNode(RBTreeNode<T>* root) {
 	return MaxNode(root->right_);
 }
+
 
 /**
 *	@brief 将node结点左旋
@@ -158,6 +180,7 @@ RBTreeNode<T>* RBTree<T>::LeftRotate(RBTreeNode<T>* node) {
 	return temp;
 }
 
+
 /**
 *	@brief 将node结点右旋
 */
@@ -175,6 +198,34 @@ RBTreeNode<T>* RBTree<T>::RightRotate(RBTreeNode<T>* node) {
 	return temp;
 }
 
+
+/**
+*	@brief 将红节点左移
+*/
+
+template <class T>
+RBTreeNode<T>* RBTree<T>::MoveRedLeft(RBTreeNode<T>* node) {
+	FixColor(node);
+	if (IsRed(node->right_->left_)) {
+		node->right_=RightRotate(node->right_);
+		node=LeftRotate(node);
+	}
+
+	return node;
+}
+
+
+/**
+*	@brief 将红节点右移
+*/
+
+template <class T>
+RBTreeNode<T>* RBTree<T>::MoveRedRight(RBTreeNode<T>* node) {
+	FixColor(node);
+	if (!IsRed(node->left_->left_)) node=RightRotate(node);
+
+	return node;
+}
 
 /**
 *	@brief 在红黑树中；插入元素，并保持红黑树的姿态
@@ -203,48 +254,49 @@ RBTreeNode<T>* RBTree<T>::Insert(T key,RBTreeNode<T>* node,RBTreeNode<T>* parent
 
 
 /**
-*	@brief 删除红黑树中键值为key的元素
+*	@brief 删除root中最小节点
 */
 
 template <class T>
-void Remove(T key) {
-	RBTreeNode<T>* node=SearchKey(key);
-
-	if(nodeQ=nullptr)
-		Remove(node);
+RBTreeNode<T>* RBTree<T>::DeleteMin(RBTreeNode<T>* root) {
+	if (root->left_==nullptr) return nullptr;
+	if (!IsRed(root->left_)&&!IsRed(root->left_->left_)) root=MoveRedLeft(node);
+	root->left_=DeleteMin(root->left_);
+	return Balance(root);
 }
+
 
 /**
-*	@brief 删除node节点
+*	@brief 删除键值为key的结点
 */
 
-template <class T>//@bug
-void Remove(RBTreeNode<T>* node) {
-	RBTreeNode<T>* child,*parent;
-	Color color;
-
-	if(node->left_&&node->right_) {
-		RBTreeNode<T>* replace=MinNode(node);
-		if (node->parent_) {
-			if (node->parent_->left_==node) node->parent_->left_=replace;
-			else node->parent_->right_=replace;
-		}
-		else root_=replace;
-		child=replace->right_;
-		parent=replace->parent_;
-		color=replace->color_;
-		if(parent==node) parent=replace;
-		else {
-			if(child) 	child->parent_=parent;
-			parent->left_=child;
-			replace->right_=node->right_;
-			node->right_->parent_=replace;
-		}
-		replace->parent_=node->parent_;
-		replace->color_=node->color_;
-		replace->left_=node->left_;
-	}
+template <class T>
+void RBTree<T>::Remove(T key) {
+	if (!IsRed(root_->left_)&&!IsRed(root_->right_)) root_->color_=RED;
+	root_ =Remove(root_,key);
+	if(!IsEmpty()) root_->color_=BLACK;
 }
+
+template <class T>
+RBTreeNode<T>* RBTree<T>::Remove(RBTreeNode<T>* root,T key) {
+	if (key<root->element_) {
+		if (!IsRed(root->left_)&&!IsRed(root->left_->left_)) root=MoveRedLeft(root);
+		root->left_=Remove(root->left_,key);
+	}
+	else {
+		if (IsRed(root->left_)) root=RightRotate(root);
+		if (key==root->element_&&root->right_==nullptr) return nullptr;
+		if (!IsRed(root->right_)&&!IsRed(root->right_->left_)) root=MoveRedRight(root);
+		if (key==root->element_) {
+			RBTreeNode<T>* temp=MinNode(root-<right_);
+			root->element_=temp->element_;
+			root->right_=DeleteMin(root->right_);
+		}
+		else root->right_=Remove(root-<right_,key);
+	}
+	return Balance(root);
+}
+
 /**
 *	@brief 删除root与root的所有子树
 */
