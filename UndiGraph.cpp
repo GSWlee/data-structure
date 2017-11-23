@@ -45,11 +45,6 @@ public:
 	void AddLink(T name1, T name2);
 	void DeleteLink(T name1, T name2);
 	void DeleteNode(T name);
-	int FindNode(T name);
-	int DFSNodeLinkNode(T name);
-	int BFSNodeLinkNode(T name);
-	vector<int> DFSMarkNode(T name, vector<int> arr);
-	vector<int> BFSMarkNode(T name, vector<int> arr);
 };
 
 template <class T>
@@ -72,7 +67,7 @@ void GraphNode<T>::AddLinkNode(T name) {
 		if (LinkNode_[i] == name) break;
 	}
 
-	if (i >= LinkNode_.size()) LinkNode_.push_back(name);
+	if (i >=LinkNode_.size()) LinkNode_.push_back(name);
 }
 
 
@@ -190,7 +185,7 @@ int UndiGraph<T>::NodeLink(T name) {
 		if (Node_[i].name_ == name) break;
 		i++;
 	}
-	if (Node_[i].name_ == name) i = Node_[i].LinkNode_.size();
+	if (Node_[i].name_ == name) i= Node_[i].LinkNode_.size();
 	return i;
 }
 
@@ -206,106 +201,40 @@ int UndiGraph<T>::SumLink() {
 		sum += Node_[i].LinkNode_.size();
 		if (Node_[i].IsCircle()) sum++;
 	}
-	return sum / 2;
+	return sum/2;
 }
-
-/**
-*	 @brief 返回目标节点的迭代器
-*/
-
-template <class T>
-int UndiGraph<T>::FindNode(T name) {
-	int i = 0;
-	for (; i<Node_.size(); i++) {
-		if (Node_[i].name_ == name) return i;
+int main() {
+	UndiGraph<string> city("city");
+	string temp;
+	cin >> temp;
+	while (temp != "quit") {
+		city.AddNode(temp);
+		cin >> temp;
 	}
-	return -1;
-}
+	string start, end;
 
-/**
-*	@brief 在深度优先搜素中对顶点进行标记
-*	@return 返回标记了点的数组
-*/
+	cin >> start >> end;
+	while (start != "quit"&&end != "quit") {
 
-template <class T>
-vector<int> UndiGraph<T>::DFSMarkNode(T name, vector<int> arr) {
-	int i = FindNode(name), temp;
-	arr[i] = 1;
-	cout << Node_[i].name_;											//按照深度优先的次序进行输出
-	const int sum = Node_[i].LinkNode_.size();
-	for (int j = 0; j<sum; j++) {
-		temp = FindNode(Node_[i].LinkNode_[j]);
-		if (arr[temp] == 0) arr=DFSMarkNode(Node_[i].LinkNode_[j], arr);
+		city.AddLink(start, end);
+
+		cin >> start >> end;
+
 	}
-	return arr;
-}
 
 
-/**
-*	@brief 找出node的所有连通节点
-*	@return 返回node连通结点的个数
-*	@tips 基于深度优先搜索
-*/
+	for (int i = 0; i < city.Node_.size(); i++) {
+		cout << city.Node_[i].name_ << endl;
+		for (int j = 0; j < city.Node_[i].LinkNode_.size(); j++) {
+			cout << city.Node_[i].LinkNode_[j] << " ";
 
-template <class T>
-int UndiGraph<T>::DFSNodeLinkNode(T name) {
-	int sum = 0;
-	const int n = Node_.size();
-	vector<int> node(n, 0);
-	node=DFSMarkNode(name, node);
-	for (int j = 0; j<n; j++) {
-		if (node[j] == 1) {
-			sum++;
-			//cout << Node_[j].name_ << " ";					//按照一般顺序进行输出
 		}
+		cout << "\n";
+		string ipo;
+		ipo = city.Node_[i].name_;
+		cout << city.NodeLink(ipo) << endl;
 	}
-	return sum;
-}
-
-/**
-*	@brief 在广度优先搜素中对顶点进行标记
-*	@return 返回标记了点的数组
-*/
-
-
-template <class T>
-vector<vector<T>> UndiGraph<T>::BFSMarkNode(T name，vector<vector<T>> path) {
-	int i = FindNode(name), temp;
-	const int sum = Node_[i].LinkNode_.size();
-	for (int j = 0; j<sum; j++) {
-		temp = FindNode(Node_[i].LinkNode_[j]);
-		if (path[temp].size() == 0) {
-			path[temp].assign(path[i].begin(),path[i].end());
-			path[temp].push_back(Node_[temp]);
-		}
-	}
-	for (int j = 0; j<sum; j++) {
-		path=BFSMarkNode(Node_[i].LinkNode_[j], path);
-	}
-	return path;
-}
-
-
-/**
-*	@brief 找出于node节点相连通的节点的最短路径
-*	@return 返回node连通结点的个数
-*	@tips 基于广度优先搜索
-*/
-
-template <class T>
-int UndiGraph<T>::BFSNodeLinkNode(T name) {
-	int sum = 0;
-	const int n = Node_.size();
-	vector<vector<T>> path;
-	int i = FindNode(name), temp;
-	path[i].push_back(name);
-	node=BFSMarkNode(name, node);
-	for (int j = 0; j<n; j++) {
-		if (path[j].size()!=0) {
-			sum++;
-			for(int m=0;m<path[j].size();m++)
-				cout<<path[j][m]<<" ";
-		}
-	}
-	return sum;
+	cout << city.SumLink() << endl;
+	cout << city.SumNode() << endl;
+	return 0;
 }
